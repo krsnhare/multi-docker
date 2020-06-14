@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t alekgosl/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run alekgosl/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t alekgosl/multi-client ./client
+  - docker build -t alekgosl/multi-nginx ./nginx
+  - docker build -t alekgosl/multi-server ./server
+  - docker build -t alekgosl/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push alekgosl/multi-client
+  - docker push alekgosl/multi-nginx
+  - docker push alekgosl/multi-server
+  - docker push alekgosl/multi-worker
